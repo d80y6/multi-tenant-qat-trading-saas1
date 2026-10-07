@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+:root {
+  --qat-900: #06281c;
+  --qat-700: #0d5c3f;
+  --qat-500: #16a34a;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family:
+    "Segoe UI", "Noto Kufi Arabic", "Tahoma", system-ui, -apple-system, sans-serif;
+  background: radial-gradient(1200px 600px at 100% -10%, #0f3d2a 0%, #071b14 45%, #04100c 100%);
+  color: #e8f5ee;
+}
+
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+}
+
+.card {
+  @apply rounded-2xl border border-emerald-500/15 bg-emerald-950/40 p-4 shadow-lg shadow-black/20 backdrop-blur;
+}
+
+.btn,
+.btn-primary,
+.btn-ghost,
+.btn-danger {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition active:scale-95 disabled:opacity-50;
+}
+
+.btn-primary {
+  @apply bg-emerald-500 text-emerald-950 hover:bg-emerald-400;
+}
+
+.btn-ghost {
+  @apply border border-emerald-500/25 bg-emerald-900/30 text-emerald-100 hover:bg-emerald-900/60;
+}
+
+.btn-danger {
+  @apply bg-rose-500/90 text-white hover:bg-rose-500;
+}
+
+.field {
+  @apply w-full rounded-xl border border-emerald-500/20 bg-emerald-950/60 px-3 py-2.5 text-sm text-emerald-50 outline-none placeholder:text-emerald-200/40 focus:border-emerald-400;
+}
+
+.label {
+  @apply mb-1 block text-xs font-semibold text-emerald-200/70;
+}
+
+.chip,
+.chip-active {
+  @apply rounded-xl border border-emerald-500/25 bg-emerald-900/40 px-3 py-2 text-sm font-bold text-emerald-100 transition active:scale-95;
+}
+
+.chip-active {
+  @apply border-emerald-300 bg-emerald-500 text-emerald-950;
+}
+
+.scroll-x {
+  scrollbar-width: none;
+}
+.scroll-x::-webkit-scrollbar {
+  display: none;
+}
+
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  #thermal-receipt {
+    width: 80mm;
+    box-shadow: none;
+  }
+  @page {
+    margin: 4mm;
+  }
+}
+
