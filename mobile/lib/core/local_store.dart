@@ -43,6 +43,29 @@ class LocalStore {
             default_price REAL NOT NULL DEFAULT 0
           );
         ''');
+        await database.execute('''
+          CREATE TABLE cache_invoices (
+            id TEXT PRIMARY KEY,
+            kind TEXT NOT NULL,
+            invoice_no INTEGER NOT NULL,
+            party_name TEXT,
+            total REAL NOT NULL DEFAULT 0,
+            paid REAL NOT NULL DEFAULT 0,
+            remaining REAL NOT NULL DEFAULT 0,
+            payment_status TEXT,
+            date TEXT
+          );
+        ''');
+        await database.execute('''
+          CREATE TABLE cache_invoice_items (
+            id TEXT PRIMARY KEY,
+            invoice_id TEXT NOT NULL,
+            name TEXT NOT NULL,
+            quantity REAL NOT NULL DEFAULT 0,
+            unit_price REAL NOT NULL DEFAULT 0,
+            subtotal REAL NOT NULL DEFAULT 0
+          );
+        ''');
       },
     );
   }
@@ -162,5 +185,89 @@ class LocalStore {
   Future<List<Map<String, Object?>>> qatTypes() async {
     final database = await db;
     return database.query('cache_qat_types', orderBy: 'name ASC');
+  }
+
+  /// تخزين الفواتير وأصنافها لعرضها بدون إنترنت.
+  Future<void> cacheInvoices({
+    required List<dynamic> sales,
+    required List<dynamic> purchases,
+    required List<dynamic> saleItems,
+    required List<dynamic> purchaseItems,
+  }) async {
+    final database = await db;
+    final batch = database.batch();
+
+    for (final row in sales) {
+      batch.insert(
+        'cache_invoices',
+        {
+          'id': row['id'],
+          'kind': 'sale',
+          'invoice_no': row['invoiceNo'],
+          'party_name': row['customerName'] ?? 'نقدي',
+          'total': double.tryParse('${row['totalAmount']}') ?? 0,
+          'paid': double.tryParse('${row['paidAmount']}') ?? 0,
+          'remaining': double.tryParse('${row['remainingAmount']}') ?? 0,
+          'payment_status': row['paymentStatus'],
+          'date': row['saleDate'].toString(),
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+
+    for (final row in purchases) {
+      batch.insert(
+        'cache_invoices',
+        {
+          'id': row['id'],
+          'kind': 'purchase',
+          'invoice_no': row['invoiceNo'],
+          'party_name': row['supplierName'] ?? 'غير محدد',
+          'total': double.tryParse('${row['totalAmount']}') ?? 0,
+          'paid': double.tryParse('${row['paidAmount']}') ?? 0,
+          'remaining': double.tryParse('${row['remainingAmount']}') ?? 0,
+          'payment_status': row['paymentStatus'],
+          'date': row['purchaseDate'].toString(),
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+
+    for (final row in [...saleItems, ...purchaseItems]) {
+      batch.insert(
+        'cache_invoice_items',
+        {
+          'id': row['id'],
+          'invoice_id': row['saleId'] ?? row['purchaseId'],
+          'name': row['qatTypeName'],
+          'quantity': double.tryParse('${row['quantity']}') ?? 0,
+          'unit_price': double.tryParse('${row['unitPrice']}') ?? 0,
+          'subtotal': double.tryParse('${row['subtotal']}') ?? 0,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+
+    await batch.commit(noResult: true);
+  }
+
+  Future<List<Map<String, Object?>>> invoices({String? kind}) async {
+    final database = await db;
+    return database.query(
+      'cache_invoices',
+      where: kind == null ? null : 'kind = ?',
+      whereArgs: kind == null ? null : [kind],
+      orderBy: 'date DESC',
+      limit: 200,
+    );
+  }
+
+  Future<List<Map<String, Object?>>> invoiceItems(String invoiceId) async {
+    final database = await db;
+    return database.query(
+      'cache_invoice_items',
+      where: 'invoice_id = ?',
+      whereArgs: [invoiceId],
+    );
   }
 }

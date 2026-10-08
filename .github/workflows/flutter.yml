@@ -1,0 +1,38 @@
+name: Flutter
+
+on:
+  push:
+    branches: [main, master]
+    paths: ["mobile/**"]
+  pull_request:
+    paths: ["mobile/**"]
+
+jobs:
+  mobile:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: تثبيت الاعتماديات
+        run: flutter pub get
+
+      - name: التحليل الثابت
+        run: flutter analyze --no-fatal-infos
+
+      - name: الاختبارات
+        run: flutter test
+
+      - name: بناء APK (smoke)
+        run: flutter build apk --debug --dart-define=API_BASE_URL=https://api.example.com
+
+      - name: بناء iOS (بدون signing)
+        run: flutter build ios --debug --no-codesign
+        continue-on-error: true

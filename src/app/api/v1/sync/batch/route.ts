@@ -1,3 +1,4 @@
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { customers, suppliers, syncLogs } from "@/db/schema";
@@ -78,34 +79,75 @@ export async function POST(req: Request) {
             status: res.duplicated ? "duplicate" : "applied",
             serverId: res.transaction.id,
           });
-        } else if (op.entity === "customer") {
+        } else if (op.entity === "customer" || op.entity === "supplier") {
           const input = z
             .object({ name: z.string().min(1), phone: z.string().optional().nullable() })
             .parse(op.payload);
-          const [row] = await db
-            .insert(customers)
-            .values({ tenantId: ctx.tenantId, name: input.name, phone: input.phone ?? null })
-            .returning({ id: customers.id });
-          results.push({
-            clientUuid: op.clientUuid,
-            entity: op.entity,
-            status: "applied",
-            serverId: row.id,
-          });
-        } else {
-          const input = z
-            .object({ name: z.string().min(1), phone: z.string().optional().nullable() })
-            .parse(op.payload);
-          const [row] = await db
-            .insert(suppliers)
-            .values({ tenantId: ctx.tenantId, name: input.name, phone: input.phone ?? null })
-            .returning({ id: suppliers.id });
-          results.push({
-            clientUuid: op.clientUuid,
-            entity: op.entity,
-            status: "applied",
-            serverId: row.id,
-          });
+          if (op.entity === "customer") {
+            const [existing] = await db
+              .select({ id: customers.id })
+              .from(customers)
+              .where(
+                and(eq(customers.tenantId, ctx.tenantId), eq(customers.clientUuid, op.clientUuid)),
+              )
+              .limit(1);
+            if (existing) {
+              results.push({
+                clientUuid: op.clientUuid,
+                entity: op.entity,
+                status: "duplicate",
+                serverId: existing.id,
+              });
+            } else {
+              const [row] = await db
+                .insert(customers)
+                .values({
+                  tenantId: ctx.tenantId,
+                  name: input.name,
+                  phone: input.phone ?? null,
+                  clientUuid: op.clientUuid,
+                })
+                .returning({ id: customers.id });
+              results.push({
+                clientUuid: op.clientUuid,
+                entity: op.entity,
+                status: "applied",
+                serverId: row.id,
+              });
+            }
+          } else {
+            const [existing] = await db
+              .select({ id: suppliers.id })
+              .from(suppliers)
+              .where(
+                and(eq(suppliers.tenantId, ctx.tenantId), eq(suppliers.clientUuid, op.clientUuid)),
+              )
+              .limit(1);
+            if (existing) {
+              results.push({
+                clientUuid: op.clientUuid,
+                entity: op.entity,
+                status: "duplicate",
+                serverId: existing.id,
+              });
+            } else {
+              const [row] = await db
+                .insert(suppliers)
+                .values({
+                  tenantId: ctx.tenantId,
+                  name: input.name,
+                  phone: input.phone ?? null,
+                  clientUuid: op.clientUuid,
+                })
+                .returning({ id: suppliers.id });
+              results.push({
+                clientUuid: op.clientUuid,
+                entity: op.entity,
+                status: "applied",
+                serverId: row.id,
+              });
+            }
+          }
         }
       } catch (error) {
         results.push({

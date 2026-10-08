@@ -56,8 +56,10 @@ function parseDate(value?: string | null) {
   return Number.isNaN(d.getTime()) ? new Date() : d;
 }
 
-function statusOf(total: number, paid: number) {
-  if (paid >= total - 0.001) return "cash";
+/** تصنيف حالة الدفع: نقداً / جزئي / آجل. */
+export function paymentStatusFor(total: number, paid: number): "cash" | "partial" | "credit" {
+  // التسامح محدود بأخطاء الفاصلة العائمة فقط (أصغر من قرش واحد)
+  if (total - paid <= 0.0001) return "cash";
   if (paid > 0) return "partial";
   return "credit";
 }
@@ -106,7 +108,7 @@ export async function createSale(ctx: TenantContext, input: SaleInput) {
         totalAmount: money(total),
         paidAmount: money(paid),
         remainingAmount: money(remaining),
-        paymentStatus: statusOf(total, paid),
+        paymentStatus: paymentStatusFor(total, paid),
         notes: input.notes ?? null,
         saleDate: parseDate(input.saleDate),
         clientUuid: input.clientUuid ?? null,
@@ -144,6 +146,22 @@ export async function createSale(ctx: TenantContext, input: SaleInput) {
       notes: input.notes ?? `فاتورة بيع رقم ${sale.invoiceNo}`,
       clientUuid: input.clientUuid ? `${input.clientUuid}:sale` : null,
     });
+
+    // الدفعة النقدية مع الفاتورة تُقيَّد كطرف مقابل حتى يتساوى كشف الحساب مع الرصيد
+    if (paid > 0) {
+      await tx.insert(financialTransactions).values({
+        tenantId: ctx.tenantId,
+        partyType: "customer",
+        partyId: input.customerId ?? null,
+        transactionType: "sale_payment",
+        amount: money(paid),
+        referenceId: sale.id,
+        userId: ctx.userId,
+        transactionDate: parseDate(input.saleDate),
+        notes: `دفعة نقدية مع فاتورة رقم ${sale.invoiceNo}`,
+        clientUuid: input.clientUuid ? `${input.clientUuid}:sale:paid` : null,
+      });
+    }
 
     return { sale, duplicated: false };
   });
@@ -195,7 +213,7 @@ export async function createPurchase(ctx: TenantContext, input: PurchaseInput) {
         totalAmount: money(total),
         paidAmount: money(paid),
         remainingAmount: money(remaining),
-        paymentStatus: statusOf(total, paid),
+        paymentStatus: paymentStatusFor(total, paid),
         notes: input.notes ?? null,
         purchaseDate: parseDate(input.purchaseDate),
         clientUuid: input.clientUuid ?? null,
@@ -233,6 +251,22 @@ export async function createPurchase(ctx: TenantContext, input: PurchaseInput) {
       notes: input.notes ?? `فاتورة شراء رقم ${purchase.invoiceNo}`,
       clientUuid: input.clientUuid ? `${input.clientUuid}:purchase` : null,
     });
+
+    // الدفعة النقدية مع فاتورة الشراء تُقيَّد كطرف مقابل
+    if (paid > 0) {
+      await tx.insert(financialTransactions).values({
+        tenantId: ctx.tenantId,
+        partyType: "supplier",
+        partyId: input.supplierId ?? null,
+        transactionType: "purchase_payment",
+        amount: money(paid),
+        referenceId: purchase.id,
+        userId: ctx.userId,
+        transactionDate: parseDate(input.purchaseDate),
+        notes: `دفعة نقدية مع فاتورة شراء رقم ${purchase.invoiceNo}`,
+        clientUuid: input.clientUuid ? `${input.clientUuid}:purchase:paid` : null,
+      });
+    }
 
     return { purchase, duplicated: false };
   });

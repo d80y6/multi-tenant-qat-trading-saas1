@@ -1,9 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { jwtVerify } from "jose";
-
-const SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? "qat-saas-dev-secret-change-me-please-0001",
-);
+import { getSecretBytes } from "@/lib/jwt-secret";
 
 const TOKEN_COOKIE = "qat_token";
 
@@ -21,13 +18,40 @@ export async function middleware(req: NextRequest) {
   let payload: Record<string, unknown> | null = null;
   if (token) {
     try {
-      payload = (await jwtVerify(token, SECRET)).payload as Record<string, unknown>;
+      payload = (await jwtVerify(token, await getSecretBytes()))
+        .payload as Record<string, unknown>;
     } catch {
       payload = null;
     }
   }
 
   const { pathname } = req.nextUrl;
+
+  // حدّ حجم جسم الطلب — يحمي الخادم من الحمولات الضخمة
+  if (pathname.startsWith("/api") && req.method !== "GET") {
+    const declared = Number(req.headers.get("content-length") ?? 0);
+    const maxBytes = pathname.startsWith("/api/v1/sync") ? 5_000_000 : 1_000_000;
+    if (declared > maxBytes) {
+      return NextResponse.json(
+        { success: false, message: "حجم الطلب كبير جداً" },
+        { status: 413 },
+      );
+    }
+  }
+
+  // سجل طلب بسيط (JSON) مع معرّف يربطه بسجلات النتيجة
+  const requestId = `req_${Math.random().toString(36).slice(2, 10)}`;
+  console.log(
+    JSON.stringify({
+      ts: new Date().toISOString(),
+      level: "info",
+      msg: "request",
+      requestId,
+      method: req.method,
+      path: pathname,
+      ip: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local",
+    }),
+  );
 
   if (pathname.startsWith("/app") && (!payload || payload.scope !== "tenant")) {
     const url = req.nextUrl.clone();
@@ -37,6 +61,7 @@ export async function middleware(req: NextRequest) {
   }
 
   const headers = new Headers(req.headers);
+  headers.set("x-request-id", requestId);
   if (payload) {
     headers.set("x-tenant-id", String(payload.tenantId ?? ""));
     headers.set("x-user-id", String(payload.userId ?? ""));

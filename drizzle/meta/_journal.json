@@ -8,6 +8,27 @@
       "when": 1791391048004,
       "tag": "0000_init_qat_saas",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791408114289,
+      "tag": "0001_parties_client_uuid",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791411048339,
+      "tag": "0002_audit_logs",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791469867202,
+      "tag": "0003_payment_providers",
+      "breakpoints": true
     }
   ]
 }

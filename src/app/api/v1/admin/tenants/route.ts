@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { customers, sales, tenants, users } from "@/db/schema";
 import { ApiError, hashPassword, requirePlatformAdmin } from "@/lib/auth";
 import { handle } from "@/lib/api";
+import { logAudit } from "@/lib/services/audit";
 import { seedTenantDefaults } from "@/lib/seed";
 
 export const dynamic = "force-dynamic";
@@ -97,6 +98,20 @@ export async function PATCH(req: Request) {
       })
       .where(eq(tenants.id, body.id))
       .returning();
+
+    await logAudit({
+      tenantId: body.id,
+      actorScope: "platform",
+      action: "tenant_updated",
+      entity: "tenant",
+      entityId: body.id,
+      details: {
+        status: body.status,
+        subscriptionStatus: body.subscriptionStatus,
+        trialEndsAt: body.trialEndsAt,
+      },
+    });
+
     return row;
   });
 }

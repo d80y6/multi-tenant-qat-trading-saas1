@@ -1,5 +1,5 @@
-// AUTO-GENERATED من drizzle/0000_init_qat_saas.sql — لا تعدّله يدوياً.
-// نسخة idempotent تُنفَّذ وقت التشغيل لضمان وجود المخطط في أي بيئة.
+// AUTO-GENERATED من ملفات drizzle/*.sql — لا يعدّله يدوياً.
+// نسخة idempotent تُنفَّذ وقت التشغيل (مرة واحدة لكل عملية) لضمان وجود المخطط.
 
 export const SCHEMA_STATEMENTS: string[] = [
   `CREATE TABLE IF NOT EXISTS "customers" (
@@ -172,76 +172,76 @@ export const SCHEMA_STATEMENTS: string[] = [
 )`,
   `DO $$ BEGIN
   ALTER TABLE "customers" ADD CONSTRAINT "customers_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "financial_transactions" ADD CONSTRAINT "financial_transactions_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "financial_transactions" ADD CONSTRAINT "financial_transactions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "purchase_items" ADD CONSTRAINT "purchase_items_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "purchase_items" ADD CONSTRAINT "purchase_items_purchase_id_purchases_id_fk" FOREIGN KEY ("purchase_id") REFERENCES "public"."purchases"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "purchase_items" ADD CONSTRAINT "purchase_items_qat_type_id_qat_types_id_fk" FOREIGN KEY ("qat_type_id") REFERENCES "public"."qat_types"("id") ON DELETE set null ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "purchases" ADD CONSTRAINT "purchases_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "purchases" ADD CONSTRAINT "purchases_supplier_id_suppliers_id_fk" FOREIGN KEY ("supplier_id") REFERENCES "public"."suppliers"("id") ON DELETE set null ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "purchases" ADD CONSTRAINT "purchases_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "qat_types" ADD CONSTRAINT "qat_types_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "sale_items" ADD CONSTRAINT "sale_items_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "sale_items" ADD CONSTRAINT "sale_items_sale_id_sales_id_fk" FOREIGN KEY ("sale_id") REFERENCES "public"."sales"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "sale_items" ADD CONSTRAINT "sale_items_qat_type_id_qat_types_id_fk" FOREIGN KEY ("qat_type_id") REFERENCES "public"."qat_types"("id") ON DELETE set null ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "sales" ADD CONSTRAINT "sales_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "sales" ADD CONSTRAINT "sales_customer_id_customers_id_fk" FOREIGN KEY ("customer_id") REFERENCES "public"."customers"("id") ON DELETE set null ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "sales" ADD CONSTRAINT "sales_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "subscription_payments" ADD CONSTRAINT "subscription_payments_tenant_subscription_id_tenant_subscriptions_id_fk" FOREIGN KEY ("tenant_subscription_id") REFERENCES "public"."tenant_subscriptions"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "subscription_payments" ADD CONSTRAINT "subscription_payments_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "suppliers" ADD CONSTRAINT "suppliers_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "sync_logs" ADD CONSTRAINT "sync_logs_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "sync_logs" ADD CONSTRAINT "sync_logs_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "tenant_subscriptions" ADD CONSTRAINT "tenant_subscriptions_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "tenant_subscriptions" ADD CONSTRAINT "tenant_subscriptions_plan_id_subscription_plans_id_fk" FOREIGN KEY ("plan_id") REFERENCES "public"."subscription_plans"("id") ON DELETE no action ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `DO $$ BEGIN
   ALTER TABLE "users" ADD CONSTRAINT "users_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
   `CREATE INDEX IF NOT EXISTS "customers_tenant_idx" ON "customers" USING btree ("tenant_id")`,
   `CREATE INDEX IF NOT EXISTS "financial_transactions_tenant_idx" ON "financial_transactions" USING btree ("tenant_id")`,
   `CREATE INDEX IF NOT EXISTS "financial_transactions_party_idx" ON "financial_transactions" USING btree ("tenant_id","party_type","party_id")`,
@@ -258,4 +258,50 @@ EXCEPTION WHEN duplicate_object THEN NULL; WHEN undefined_table THEN NULL; END $
   `CREATE INDEX IF NOT EXISTS "sync_logs_tenant_idx" ON "sync_logs" USING btree ("tenant_id")`,
   `CREATE INDEX IF NOT EXISTS "tenant_subscriptions_tenant_idx" ON "tenant_subscriptions" USING btree ("tenant_id")`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "users_phone_unique" ON "users" USING btree ("phone")`,
+  `DO $$ BEGIN
+  ALTER TABLE "customers" ADD COLUMN "client_uuid" text;
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+  `DO $$ BEGIN
+  ALTER TABLE "suppliers" ADD COLUMN "client_uuid" text;
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "customers_client_uuid_unique" ON "customers" USING btree ("tenant_id","client_uuid")`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "suppliers_client_uuid_unique" ON "suppliers" USING btree ("tenant_id","client_uuid")`,
+  `CREATE TABLE IF NOT EXISTS "audit_logs" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"tenant_id" uuid,
+	"user_id" uuid,
+	"actor_scope" text DEFAULT 'tenant' NOT NULL,
+	"action" text NOT NULL,
+	"entity" text NOT NULL,
+	"entity_id" text,
+	"details" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+)`,
+  `DO $$ BEGIN
+  ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+  `DO $$ BEGIN
+  ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+  `CREATE INDEX IF NOT EXISTS "audit_logs_tenant_idx" ON "audit_logs" USING btree ("tenant_id")`,
+  `CREATE INDEX IF NOT EXISTS "audit_logs_entity_idx" ON "audit_logs" USING btree ("entity","entity_id")`,
+  `DO $$ BEGIN
+  ALTER TABLE "subscription_payments" ALTER COLUMN "paid_at" DROP DEFAULT;
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+  `DO $$ BEGIN
+  ALTER TABLE "subscription_payments" ALTER COLUMN "paid_at" DROP NOT NULL;
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+  `DO $$ BEGIN
+  ALTER TABLE "subscription_payments" ADD COLUMN "provider" text DEFAULT 'manual' NOT NULL;
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+  `DO $$ BEGIN
+  ALTER TABLE "subscription_payments" ADD COLUMN "checkout_url" text;
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+  `DO $$ BEGIN
+  ALTER TABLE "subscription_payments" ADD COLUMN "provider_payload" jsonb DEFAULT '{}'::jsonb NOT NULL;
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+  `DO $$ BEGIN
+  ALTER TABLE "subscription_payments" ADD COLUMN "created_at" timestamp with time zone DEFAULT now() NOT NULL;
+EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_column THEN NULL; WHEN duplicate_table THEN NULL; WHEN undefined_table THEN NULL; END $$`,
+  `CREATE INDEX IF NOT EXISTS "subscription_payments_status_idx" ON "subscription_payments" USING btree ("status")`,
 ];

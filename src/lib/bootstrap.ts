@@ -23,7 +23,23 @@ export type BootstrapState = {
 };
 
 export async function ensureDatabaseReady(force = false): Promise<BootstrapState> {
-  if (ready && !force) return { schemaReady: true, seeded: true };
+  const state =
+    ready && !force
+      ? { schemaReady: true, seeded: true }
+      : await runCore(force);
+
+  if (state.schemaReady) {
+    // دورة حياة الاشتراكات (مقيّدة بمرة كل 5 دقائق) — لا تُفشل الطلب أبداً.
+    const { runSubscriptionMaintenance } = await import("@/lib/services/subscriptions");
+    await runSubscriptionMaintenance().catch((error) =>
+      console.error("[bootstrap] maintenance:", error),
+    );
+  }
+
+  return state;
+}
+
+function runCore(force: boolean) {
   if (inFlight) return inFlight;
 
   inFlight = run(force)
@@ -65,16 +81,20 @@ async function run(force: boolean): Promise<BootstrapState> {
   }
 }
 
+let schemaApplied = false;
+
+/**
+ * يطبّق عبارات المخطط (كلها idempotent: IF NOT EXISTS + اعتراض الأخطاء المتكررة)
+ * مرة واحدة في عمر العملية، سواء كانت القاعدة فارغة أو قديمة تحتاج ترقية أعمدة.
+ */
 async function ensureSchema() {
-  // فحص سريع: إن كان جدول المستخدمين موجوداً فالمخطط جاهز.
-  const probe = await db.execute(sql`select to_regclass('public.users') as t`);
-  const rows = probe.rows as { t: string | null }[];
-  if (rows[0]?.t) return;
+  if (schemaApplied) return;
 
   for (const statement of SCHEMA_STATEMENTS) {
     await db.execute(sql.raw(statement));
   }
-  console.log(`[bootstrap] schema created (${SCHEMA_STATEMENTS.length} statements)`);
+  schemaApplied = true;
+  console.log(`[bootstrap] schema ensured (${SCHEMA_STATEMENTS.length} statements)`);
 }
 
 /** تُستخدم في الصفحات/المسارات التي لا يجب أن تفشل بسبب التهيئة. */

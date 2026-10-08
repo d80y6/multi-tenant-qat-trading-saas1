@@ -10,14 +10,17 @@
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/estree": "^1.0.6",
     "bcryptjs": "^2.4.3",
     "dotenv": "17.3.1",
     "drizzle-orm": "0.45.2",
+    "ioredis": "^5.4.2",
     "jose": "^5.9.6",
     "next": "16.2.6",
     "pg": "8.20.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
+    "vitest": "^2.1.9",
     "zod": "^3.24.1"
   },
   "devDependencies": {

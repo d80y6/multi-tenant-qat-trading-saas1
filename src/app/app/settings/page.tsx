@@ -25,6 +25,38 @@ export default function SettingsPage() {
   const [typeForm, setTypeForm] = useState({ name: "", defaultPrice: "" });
   const [userForm, setUserForm] = useState({ name: "", phone: "", password: "", role: "worker" });
   const [message, setMessage] = useState<string | null>(null);
+  const [checkout, setCheckout] = useState<{
+    checkoutUrl: string | null;
+    instructions: string | null;
+    amount: number;
+    currency: string;
+    provider: string;
+  } | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  /** بدء عملية دفع لاشتراك/تجديد الباقة */
+  async function startCheckout(plan: { id: string; name: string }) {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const res = await apiPost<{
+        checkoutUrl: string | null;
+        instructions: string | null;
+        amount: number;
+        currency: string;
+        provider: string;
+      }>("/api/v1/subscription/checkout", {
+        planId: plan.id,
+        provider: "manual",
+        currency: "YER",
+      });
+      setCheckout(res);
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "تعذر بدء الدفع");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function reload() {
     const [t, u, s] = await Promise.all([
@@ -238,6 +270,13 @@ export default function SettingsPage() {
                     <li key={f}>• {f}</li>
                   ))}
                 </ul>
+                <button
+                  onClick={() => startCheckout(p)}
+                  disabled={busy}
+                  className="btn-primary mt-2 w-full text-xs"
+                >
+                  {busy ? "جارٍ..." : `اشتراك / تجديد — ${formatMoney(p.price)}`}
+                </button>
               </div>
             ))}
           </div>
@@ -255,9 +294,44 @@ export default function SettingsPage() {
             </ul>
           )}
           <p className="mt-3 text-[11px] text-emerald-200/50">
-            للتجديد تواصل مع إدارة المنصة — يتم التفعيل فوراً من لوحة المشرف العام.
+            يُفعَّل الاشتراك تلقائياً بعد الدفع عبر البطاقة، أو خلال دقائق بعد تأكيد التحويل
+            البنكي من إدارة المنصة.
           </p>
         </section>
+      )}
+
+      {checkout && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="card w-full max-w-md space-y-3">
+            <h3 className="text-sm font-black text-emerald-100">إتمام الدفع</h3>
+            <p className="text-xs text-emerald-200/70">
+              المبلغ: <b className="text-emerald-300">{formatMoney(checkout.amount)}</b>{" "}
+              {checkout.currency}
+            </p>
+
+            {checkout.checkoutUrl ? (
+              <a
+                href={checkout.checkoutUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="btn-primary w-full"
+              >
+                💳 الانتقال لصفحة الدفع الآمنة
+              </a>
+            ) : (
+              <div className="rounded-xl bg-emerald-900/30 p-3 text-[11px] leading-6 text-emerald-200/80 whitespace-pre-line">
+                {checkout.instructions}
+              </div>
+            )}
+
+            <p className="text-[11px] text-emerald-200/50">
+              بعد إتمام الدفع يُحدَّث اشتراكك تلقائياً — يمكنك متابعة الحالة من هذه الصفحة.
+            </p>
+            <button onClick={() => setCheckout(null)} className="btn-ghost w-full">
+              إغلاق
+            </button>
+          </div>
+        </div>
       )}
 
       {message && <p className="card text-xs text-emerald-200 lg:col-span-2">{message}</p>}

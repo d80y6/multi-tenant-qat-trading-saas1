@@ -1,13 +1,10 @@
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
+import { getSecretBytes } from "@/lib/jwt-secret";
 import { db } from "@/db";
 import { tenants, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-
-const SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? "qat-saas-dev-secret-change-me-please-0001",
-);
 
 export const TOKEN_COOKIE = "qat_token";
 export const TOKEN_TTL = "30d";
@@ -36,12 +33,12 @@ export async function signToken(payload: TokenPayload) {
     .setIssuedAt()
     .setSubject(payload.userId)
     .setExpirationTime(TOKEN_TTL)
-    .sign(SECRET);
+    .sign(await getSecretBytes());
 }
 
 export async function verifyToken(token: string): Promise<TokenPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, SECRET);
+    const { payload } = await jwtVerify(token, await getSecretBytes());
     return {
       scope: payload.scope as "tenant" | "platform",
       userId: payload.userId as string,

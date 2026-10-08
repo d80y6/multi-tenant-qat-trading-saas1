@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: app_db
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/app_db
+      JWT_SECRET: ci-only-secret-value-please-change-32-chars
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: تثبيت الاعتماديات
+        run: npm ci
+
+      - name: التحقق من الأنواع
+        run: npx next typegen && npm exec tsc -- --noEmit --pretty false
+
+      - name: الاختبارات (وحدة + تكامل)
+        run: npx vitest run
+
+      - name: البناء الإنتاجي
+        run: npm run build
+
+      - name: فحص الأسرار المضمّنة
+        run: |
+          if grep -rn "change-me\|dev-secret" src --include=*.ts | grep -v "jwt-secret.ts"; then
+            echo "وجد الكود قيمة سر ثابتة — أزلها" && exit 1
+          fi

@@ -13,6 +13,8 @@ import {
 } from "@/db/schema";
 import { ApiError, type TenantContext } from "@/lib/auth";
 import { money, num } from "@/lib/api";
+import { auditLogs } from "@/db/schema";
+import { auditRow } from "@/lib/services/audit";
 
 export async function getSaleDetail(ctx: TenantContext, id: string) {
   const [row] = await db
@@ -95,6 +97,21 @@ export async function voidSale(ctx: TenantContext, id: string) {
         ),
       );
 
+    await tx.insert(auditLogs).values(
+      auditRow({
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: "void_sale",
+        entity: "sale",
+        entityId: sale.id,
+        details: {
+          invoiceNo: sale.invoiceNo,
+          total: sale.totalAmount,
+          remainingReversed: sale.remainingAmount,
+        },
+      }),
+    );
+
     await tx.delete(sales).where(and(eq(sales.id, sale.id), eq(sales.tenantId, ctx.tenantId)));
     return { voided: true, invoiceNo: sale.invoiceNo };
   });
@@ -126,6 +143,21 @@ export async function voidPurchase(ctx: TenantContext, id: string) {
           eq(financialTransactions.referenceId, purchase.id),
         ),
       );
+
+    await tx.insert(auditLogs).values(
+      auditRow({
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: "void_purchase",
+        entity: "purchase",
+        entityId: purchase.id,
+        details: {
+          invoiceNo: purchase.invoiceNo,
+          total: purchase.totalAmount,
+          remainingReversed: purchase.remainingAmount,
+        },
+      }),
+    );
 
     await tx
       .delete(purchases)

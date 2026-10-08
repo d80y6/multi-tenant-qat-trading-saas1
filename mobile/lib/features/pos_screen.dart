@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../core/sync_service.dart';
+import 'print_receipt_sheet.dart';
 
 /// شاشة البيع السريع: شرائح أنواع القات + لوحة أرقام + اختيار عميل.
 /// الحفظ يتم محلياً أولاً (Offline-First) ثم يُزامن في الخلفية.
@@ -24,6 +25,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   Map<String, Object?>? _customer;
   List<Map<String, Object?>> _types = const [];
   List<Map<String, Object?>> _customers = const [];
+  Map<String, dynamic>? _lastReceipt;
 
   double get _total => _items.fold(
       0, (sum, item) => sum + (item['quantity'] as double) * (item['unitPrice'] as double));
@@ -90,6 +92,21 @@ class _PosScreenState extends ConsumerState<PosScreen> {
         'saleDate': DateTime.now().toIso8601String(),
       },
     );
+    // نسخة الإيصال للطباعة الحرارية
+    _lastReceipt = {
+      'businessName': 'قاتي بزنس',
+      'businessPhone': null,
+      'invoiceNo': DateTime.now().millisecondsSinceEpoch % 100000,
+      'kind': 'sale',
+      'partyName': _customer?['name'] as String?,
+      'cashierName': '',
+      'date': DateTime.now(),
+      'items': List<Map<String, dynamic>>.from(_items),
+      'total': _total,
+      'paid': double.tryParse(_paid) ?? 0,
+      'remaining': _total - (double.tryParse(_paid) ?? 0),
+    };
+
     unawaitedSync();
     setState(() {
       _items.clear();
@@ -117,6 +134,13 @@ class _PosScreenState extends ConsumerState<PosScreen> {
       appBar: AppBar(
         title: const Text('بيع سريع'),
         actions: [
+          IconButton(
+            tooltip: 'طباعة آخر إيصال',
+            icon: const Icon(Icons.print),
+            onPressed: _lastReceipt == null
+                ? null
+                : () => showPrintSheet(context, ref, _lastReceipt!),
+          ),
           if (pending > 0)
             Padding(
               padding: const EdgeInsets.all(12),

@@ -38,6 +38,19 @@ type Subscription = {
   status: string;
 };
 
+type PaymentRow = {
+  id: string;
+  tenantName: string;
+  planName: string | null;
+  amount: number;
+  paymentMethod: string;
+  provider: string;
+  transactionReference: string | null;
+  checkoutUrl: string | null;
+  status: string;
+  createdAt: string;
+};
+
 type Stats = {
   revenueTotal: number;
   revenueMonth: number;
@@ -65,21 +78,35 @@ export default function AdminConsole({ adminName }: { adminName: string }) {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [pendingPayments, setPendingPayments] = useState<PaymentRow[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [newTenant, setNewTenant] = useState({ businessName: "", ownerName: "", phone: "", city: "" });
   const [newPlan, setNewPlan] = useState({ name: "", price: "", durationDays: "30", maxUsers: "3" });
 
   async function reload() {
-    const [t, p, s, st] = await Promise.all([
+    const [t, p, s, st, pay] = await Promise.all([
       apiGet<Tenant[]>("/api/v1/admin/tenants"),
       apiGet<Plan[]>("/api/v1/admin/plans"),
       apiGet<Subscription[]>("/api/v1/admin/subscriptions"),
       apiGet<Stats>("/api/v1/admin/stats"),
+      apiGet<PaymentRow[]>("/api/v1/admin/payments?status=pending").catch(() => []),
     ]);
     setTenants(t);
     setPlans(p);
     setSubs(s);
     setStats(st);
+    setPendingPayments(pay);
+  }
+
+  /** تأكيد/رفض دفعة يدوية — التأكيد يفعّل الاشتراك فوراً */
+  async function decidePayment(paymentId: string, action: "confirm" | "reject") {
+    try {
+      await apiPost("/api/v1/admin/payments", { paymentId, action });
+      setMessage(action === "confirm" ? "تم تأكيد الدفع وتفعيل الاشتراك" : "تم رفض الدفعة");
+      await reload();
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "خطأ");
+    }
   }
 
   useEffect(() => {
@@ -139,16 +166,37 @@ export default function AdminConsole({ adminName }: { adminName: string }) {
           <h1 className="text-lg font-black text-emerald-50">🛡️ لوحة المشرف العام</h1>
           <p className="text-[11px] text-emerald-200/60">{adminName}</p>
         </div>
-        <button
-          className="btn-ghost px-3 py-1.5 text-xs"
-          onClick={async () => {
-            await apiPost("/api/v1/auth/logout", {});
-            router.push("/");
-            router.refresh();
-          }}
-        >
-          خروج
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            className="btn-ghost px-3 py-1.5 text-xs"
+            onClick={async () => {
+              try {
+                const res = await apiPost<{ result: { expired: number; renewed: number; trialsClosed: number } }>(
+                  "/api/v1/admin/maintenance",
+                  {},
+                );
+                setMessage(
+                  `تمت الصيانة: ${res.result.renewed} تجديد تلقائي، ${res.result.expired} انتهى، ${res.result.trialsClosed} تجربة مغلقة`,
+                );
+                await reload();
+              } catch (e) {
+                setMessage(e instanceof Error ? e.message : "خطأ");
+              }
+            }}
+          >
+            ⚙️ تشغيل دورة الاشتراكات
+          </button>
+          <button
+            className="btn-ghost px-3 py-1.5 text-xs"
+            onClick={async () => {
+              await apiPost("/api/v1/auth/logout", {});
+              router.push("/");
+              router.refresh();
+            }}
+          >
+            خروج
+          </button>
+        </div>
       </header>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -195,8 +243,52 @@ export default function AdminConsole({ adminName }: { adminName: string }) {
             </ul>
           </section>
 
-          <section className="card">
-            <h2 className="mb-3 text-sm font-black text-emerald-100">آخر دفعات الاشتراكات</h2>
+        <section className="card lg:col-span-2">
+          <h2 className="mb-3 text-sm font-black text-emerald-100">
+            💳 دفعات بانتظار التأكيد ({pendingPayments.length})
+          </h2>
+          <ul className="space-y-2">
+            {pendingPayments.map((p) => (
+              <li
+                key={p.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-amber-500/10 px-3 py-2"
+              >
+                <div>
+                  <p className="text-sm font-bold text-emerald-100">
+                    {p.tenantName} — {p.planName ?? "اشتراك"}
+                  </p>
+                  <p className="text-[11px] text-emerald-200/50">
+                    {p.provider === "stripe" ? "بطاقة" : "تحويل بنكي"} · مرجع{" "}
+                    {p.transactionReference ?? "-"} · {formatDate(p.createdAt)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-black text-emerald-300">
+                    {formatMoney(p.amount)}
+                  </span>
+                  <button
+                    onClick={() => decidePayment(p.id, "confirm")}
+                    className="rounded-lg bg-emerald-500 px-3 py-1 text-xs font-bold text-emerald-950"
+                  >
+                    تأكيد
+                  </button>
+                  <button
+                    onClick={() => decidePayment(p.id, "reject")}
+                    className="rounded-lg border border-rose-500/40 px-3 py-1 text-xs font-bold text-rose-200"
+                  >
+                    رفض
+                  </button>
+                </div>
+              </li>
+            ))}
+            {pendingPayments.length === 0 && (
+              <li className="text-xs text-emerald-200/50">لا توجد دفعات معلّقة</li>
+            )}
+          </ul>
+        </section>
+
+        <section className="card">
+          <h2 className="mb-3 text-sm font-black text-emerald-100">آخر دفعات الاشتراكات</h2>
             <ul className="space-y-2">
               {stats.recentPayments.map((p) => (
                 <li

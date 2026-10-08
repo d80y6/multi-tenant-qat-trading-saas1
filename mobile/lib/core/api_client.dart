@@ -82,6 +82,13 @@ class ApiClient {
     return Map<String, dynamic>.from(res.data['data'] as Map);
   }
 
+  Future<void> changePassword(String currentPassword, String newPassword) async {
+    await _dio.post('/auth/change-password', data: {
+      'currentPassword': currentPassword,
+      'newPassword': newPassword,
+    });
+  }
+
   Future<Map<String, dynamic>> collection(Map<String, dynamic> payload) async {
     final res = await _dio.post('/vouchers/collections', data: payload);
     return Map<String, dynamic>.from(res.data['data'] as Map);

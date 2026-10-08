@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/sync_service.dart';
 import 'debts_screen.dart';
+import 'invoices_screen.dart';
 import 'pos_screen.dart';
+import 'settings_screen.dart';
 
 /// الهيكل الرئيسي للتطبيق مع شريط تنقل سفلي ومؤشر حالة المزامنة.
 class HomeShell extends ConsumerStatefulWidget {
@@ -27,7 +29,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    final pages = const [PosScreen(), DebtsScreen()];
+    final pages = const [PosScreen(), InvoicesScreen(), DebtsScreen(), SettingsScreen()];
     return Scaffold(
       body: pages[_index],
       bottomNavigationBar: NavigationBar(
@@ -35,7 +37,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.bolt), label: 'بيع سريع'),
+          NavigationDestination(icon: Icon(Icons.receipt_long), label: 'الفواتير'),
           NavigationDestination(icon: Icon(Icons.account_balance_wallet), label: 'الديون'),
+          NavigationDestination(icon: Icon(Icons.settings), label: 'الإعدادات'),
         ],
       ),
       floatingActionButton: FloatingActionButton.small(

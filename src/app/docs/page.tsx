@@ -25,13 +25,22 @@ const endpoints: { method: string; path: string; desc: string; auth: string }[] 
   { method: "GET", path: "/api/v1/reports/summary?from&to", desc: "تقرير فترة: أرباح، حسب النوع، حسب الموظف، يومي", auth: "Tenant" },
   { method: "GET", path: "/api/v1/transactions", desc: "دفتر الأستاذ العام مع فلترة بالنوع والفترة", auth: "Tenant" },
   { method: "GET", path: "/api/v1/subscription", desc: "حالة اشتراك المنشأة والباقات وسجل الدفعات", auth: "Tenant" },
-  { method: "GET/POST/PATCH", path: "/api/v1/users", desc: "حسابات الموظفين وصلاحياتهم", auth: "Owner" },
+  { method: "GET/POST/PATCH", path: "/api/v1/users", desc: "حسابات الموظفين وصلاحياتهم (مع إنفاذ حد الباقة)", auth: "Owner" },
+  { method: "POST", path: "/api/v1/auth/change-password", desc: "تغيير كلمة المرور الذاتي (الحالية ثم الجديدة)", auth: "Tenant" },
+  { method: "GET", path: "/api/v1/audit", desc: "سجل التدقيق: الإجراءات الحساسة ومرتكيها ووقتها", auth: "Tenant" },
+  { method: "GET", path: "/api/v1/data-export", desc: "تصدير كامل بيانات المنشأة JSON (امتثال وحقوق التاجر)", auth: "Tenant" },
+  { method: "GET/POST", path: "/api/v1/admin/maintenance", desc: "دورة حياة الاشتراكات: إنهاء التجارب، انتهاء، تجديد تلقائي", auth: "Platform" },
   { method: "POST", path: "/api/v1/sync/batch", desc: "مزامنة دفعية للعمليات المسجلة أوفلاين (idempotent عبر clientUuid)", auth: "Tenant" },
   { method: "GET", path: "/api/v1/sync/pull", desc: "سحب التغييرات منذ تاريخ محدد للتخزين المحلي", auth: "Tenant" },
   { method: "GET/POST/PATCH", path: "/api/v1/admin/tenants", desc: "إدارة المنشآت وتفعيل/إيقاف الحسابات", auth: "Platform" },
   { method: "GET/POST/PATCH", path: "/api/v1/admin/plans", desc: "باقات الاشتراك", auth: "Platform" },
   { method: "GET/POST", path: "/api/v1/admin/subscriptions", desc: "تفعيل وتجديد الاشتراكات + تسجيل الدفعات", auth: "Platform" },
   { method: "GET", path: "/api/v1/admin/stats", desc: "المؤشرات المالية للمنصة والتجديدات القادمة", auth: "Platform" },
+  { method: "POST", path: "/api/v1/subscription/checkout", desc: "بدء دفع اشتراك/تجديد (Stripe Checkout أو تحويل بنكي)", auth: "Owner" },
+  { method: "POST", path: "/api/v1/payments/webhook", desc: "استقبال إشعارات بوابة الدفع مع تحقق توقيع HMAC", auth: "مزوّد الدفع" },
+  { method: "GET/POST", path: "/api/v1/admin/payments", desc: "سجل الدفعات + تأكيد/رفض الدفعات اليدوية", auth: "Platform" },
+  { method: "GET/POST", path: "/api/v1/admin/backups", desc: "قائمة النسخ الاحتياطية + تنفيذ نسخة فورية (pg_dump)", auth: "Platform" },
+  { method: "POST", path: "/api/v1/admin/maintenance", desc: "دورة حياة الاشتراكات: إنهاء التجارب، انتهاء، تجديد تلقائي", auth: "Platform" },
 ];
 
 export default function DocsPage() {

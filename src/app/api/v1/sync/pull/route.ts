@@ -1,6 +1,15 @@
 import { and, eq, gte } from "drizzle-orm";
 import { db } from "@/db";
-import { customers, financialTransactions, purchases, qatTypes, sales, suppliers } from "@/db/schema";
+import {
+  customers,
+  financialTransactions,
+  purchaseItems,
+  purchases,
+  qatTypes,
+  saleItems,
+  sales,
+  suppliers,
+} from "@/db/schema";
 import { requireTenant } from "@/lib/auth";
 import { handle } from "@/lib/api";
 
@@ -13,7 +22,7 @@ export async function GET(req: Request) {
     const sinceParam = new URL(req.url).searchParams.get("since");
     const since = sinceParam ? new Date(sinceParam) : new Date(0);
 
-    const [qat, cust, supp, sl, pu, tx] = await Promise.all([
+    const [qat, cust, supp, sl, pu, tx, slItems, puItems] = await Promise.all([
       db
         .select()
         .from(qatTypes)
@@ -40,6 +49,20 @@ export async function GET(req: Request) {
             gte(financialTransactions.createdAt, since),
           ),
         ),
+      // أصناف الفواتير حتى يعمل التطبيق كاملاً بدون إنترنت
+      db
+        .select({ id: saleItems.id, saleId: saleItems.saleId, qatTypeName: saleItems.qatTypeName,
+          quantity: saleItems.quantity, unitPrice: saleItems.unitPrice, subtotal: saleItems.subtotal })
+        .from(saleItems)
+        .innerJoin(sales, eq(sales.id, saleItems.saleId))
+        .where(and(eq(saleItems.tenantId, ctx.tenantId), gte(sales.createdAt, since))),
+      db
+        .select({ id: purchaseItems.id, purchaseId: purchaseItems.purchaseId,
+          qatTypeName: purchaseItems.qatTypeName, quantity: purchaseItems.quantity,
+          unitPrice: purchaseItems.unitPrice, subtotal: purchaseItems.subtotal })
+        .from(purchaseItems)
+        .innerJoin(purchases, eq(purchases.id, purchaseItems.purchaseId))
+        .where(and(eq(purchaseItems.tenantId, ctx.tenantId), gte(purchases.createdAt, since))),
     ]);
 
     return {
@@ -50,6 +73,8 @@ export async function GET(req: Request) {
       sales: sl,
       purchases: pu,
       transactions: tx,
+      saleItems: slItems,
+      purchaseItems: puItems,
     };
   });
 }

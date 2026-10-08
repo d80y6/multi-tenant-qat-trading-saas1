@@ -9,6 +9,8 @@ import {
 } from "@/db/schema";
 import { ApiError, requirePlatformAdmin } from "@/lib/auth";
 import { handle } from "@/lib/api";
+import { auditLogs } from "@/db/schema";
+import { auditRow } from "@/lib/services/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -87,6 +89,22 @@ export async function POST(req: Request) {
         .update(tenants)
         .set({ subscriptionStatus: "active", status: "active" })
         .where(eq(tenants.id, body.tenantId));
+
+      await tx.insert(auditLogs).values(
+        auditRow({
+          tenantId: body.tenantId,
+          actorScope: "platform",
+          action: "subscription_activated",
+          entity: "tenant_subscription",
+          entityId: subscription.id,
+          details: {
+            planId: plan.id,
+            planName: plan.name,
+            amount: plan.price,
+            autoRenew: body.autoRenew,
+          },
+        }),
+      );
 
       return subscription;
     });

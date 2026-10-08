@@ -29,7 +29,9 @@ type Txn = {
 
 const typeLabel: Record<string, string> = {
   sale: "فاتورة بيع",
+  sale_payment: "دفعة مع فاتورة بيع",
   purchase: "فاتورة شراء",
+  purchase_payment: "دفعة مع فاتورة شراء",
   collection: "سند قبض",
   payment: "سند صرف",
   adjustment: "تسوية",

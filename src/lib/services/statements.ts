@@ -61,12 +61,18 @@ export async function getStatement(
     if (row.transactionType === "sale") {
       debit = amount;
       label = "فاتورة بيع";
+    } else if (row.transactionType === "sale_payment") {
+      credit = amount;
+      label = "دفعة نقدية مع فاتورة";
     } else if (row.transactionType === "collection") {
       credit = amount;
       label = "سند قبض";
     } else if (row.transactionType === "purchase") {
       credit = amount;
       label = "فاتورة شراء";
+    } else if (row.transactionType === "purchase_payment") {
+      debit = amount;
+      label = "دفعة نقدية لفاتورة شراء";
     } else if (row.transactionType === "payment") {
       debit = amount;
       label = "سند صرف";

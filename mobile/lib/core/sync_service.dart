@@ -94,6 +94,12 @@ class SyncService {
     await _store.cacheQatTypes(data['qatTypes'] as List<dynamic>);
     await _store.cacheParties('customer', data['customers'] as List<dynamic>);
     await _store.cacheParties('supplier', data['suppliers'] as List<dynamic>);
+    await _store.cacheInvoices(
+      sales: (data['sales'] as List<dynamic>? ?? const []),
+      purchases: (data['purchases'] as List<dynamic>? ?? const []),
+      saleItems: (data['saleItems'] as List<dynamic>? ?? const []),
+      purchaseItems: (data['purchaseItems'] as List<dynamic>? ?? const []),
+    );
     await prefs.setString('last_sync', data['serverTime'] as String);
   }
 

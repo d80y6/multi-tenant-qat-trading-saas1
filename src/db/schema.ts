@@ -81,12 +81,22 @@ export const subscriptionPayments = pgTable(
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
     amount: money("amount").notNull().default("0"),
-    paymentMethod: text("payment_method").notNull().default("cash"), // cash | bank | wallet
+    paymentMethod: text("payment_method").notNull().default("cash"), // cash | bank | wallet | card
     transactionReference: text("transaction_reference"),
-    status: text("status").notNull().default("paid"), // paid | pending | failed
-    paidAt: timestamp("paid_at", { withTimezone: true }).notNull().defaultNow(),
+    status: text("status").notNull().default("paid"), // paid | pending | failed | refunded
+    provider: text("provider").notNull().default("manual"), // manual | stripe
+    checkoutUrl: text("checkout_url"),
+    providerPayload: jsonb("provider_payload")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("subscription_payments_tenant_idx").on(t.tenantId)],
+  (t) => [
+    index("subscription_payments_tenant_idx").on(t.tenantId),
+    index("subscription_payments_status_idx").on(t.status),
+  ],
 );
 
 /* ------------------------------------------------------------------ */
@@ -140,9 +150,13 @@ export const suppliers = pgTable(
     balance: money("balance").notNull().default("0"),
     notes: text("notes"),
     isActive: boolean("is_active").notNull().default(true),
+    clientUuid: text("client_uuid"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("suppliers_tenant_idx").on(t.tenantId)],
+  (t) => [
+    index("suppliers_tenant_idx").on(t.tenantId),
+    uniqueIndex("suppliers_client_uuid_unique").on(t.tenantId, t.clientUuid),
+  ],
 );
 
 export const customers = pgTable(
@@ -158,9 +172,13 @@ export const customers = pgTable(
     balance: money("balance").notNull().default("0"),
     notes: text("notes"),
     isActive: boolean("is_active").notNull().default(true),
+    clientUuid: text("client_uuid"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("customers_tenant_idx").on(t.tenantId)],
+  (t) => [
+    index("customers_tenant_idx").on(t.tenantId),
+    uniqueIndex("customers_client_uuid_unique").on(t.tenantId, t.clientUuid),
+  ],
 );
 
 export const purchases = pgTable(
@@ -274,6 +292,26 @@ export const financialTransactions = pgTable(
     index("financial_transactions_tenant_idx").on(t.tenantId),
     index("financial_transactions_party_idx").on(t.tenantId, t.partyType, t.partyId),
     uniqueIndex("financial_transactions_client_uuid_unique").on(t.tenantId, t.clientUuid),
+  ],
+);
+
+/** سجل التدقيق: كل إجراء حسّاس (إلغاء فاتورة، تغيير صلاحيات، تفعيل اشتراك). */
+export const auditLogs = pgTable(
+  "audit_logs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    actorScope: text("actor_scope").notNull().default("tenant"), // tenant | platform
+    action: text("action").notNull(),
+    entity: text("entity").notNull(),
+    entityId: text("entity_id"),
+    details: jsonb("details").$type<Record<string, unknown>>().notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("audit_logs_tenant_idx").on(t.tenantId),
+    index("audit_logs_entity_idx").on(t.entity, t.entityId),
   ],
 );
 
